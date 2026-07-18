@@ -9,9 +9,9 @@ import type {
   UserPreview,
   PublicUser,
   UserCount,
-} from "../types/index";
+} from "../../src/types/index";
 
-import { ClaimStatus, UserRole } from "../types/index";
+import { ClaimStatus, UserRole } from "../../src/types/index";
 
 
 // ===== PRIMITIVE TYPE ANNOTATIONS =====
