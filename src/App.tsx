@@ -35,9 +35,7 @@ const claim: Claim = {
 
 function App() {
   // Typed event handler
-  const handleViewItem = (
-    event: MouseEvent<HTMLButtonElement>
-  ): void => {
+  const handleViewItem = (event: MouseEvent<HTMLButtonElement>): void => {
     console.log(event.currentTarget);
     alert(`Viewing Item: ${lostItem.itemName}`);
   };
@@ -48,13 +46,9 @@ function App() {
 
       <UserCard user={student} />
 
-      <ItemCard item={lostItem} />
+      <ItemCard item={lostItem} onSelect={handleViewItem} />
 
       <ClaimCard claim={claim} />
-
-      <button onClick={handleViewItem}>
-        View Lost Item
-      </button>
     </div>
   );
 }
