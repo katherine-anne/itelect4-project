@@ -3,7 +3,7 @@ import type { Item } from "../types";
 
 interface ItemCardProps {
   item: Item;
-  onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
+  onSelect: (item: Item) => void;
 }
 
 function ItemCard({ item, onSelect }: ItemCardProps) {
@@ -14,7 +14,7 @@ function ItemCard({ item, onSelect }: ItemCardProps) {
       <p>Location: {item.location}</p>
       <p>Status: {item.status}</p>
 
-      <button onClick={onSelect}>View Item</button>
+      <button onClick={() => onSelect(item)}>View Item</button>
     </div>
   );
 }
