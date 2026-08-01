@@ -66,23 +66,32 @@ const claim: Claim = {
 
 function App() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  // List of lost and found items
   const [items, setItems] = useState<Item[]>([]);
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
-  // Tracks whether mock data is still loading
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const previousSearchTerm = usePrevious(searchTerm);
-  const [showClaims, toggleShowClaims] = useToggle(true);
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const [showClaims, toggleShowClaims] = useToggle(true);
+  const [isDarkMode, toggleDarkMode] = useToggle(false);
+
+  const previousSearchTerm = usePrevious(searchTerm);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSelectedUser(student);
-      setItems(lostItems);
-      setSelectedClaim(claim);
-      setIsLoading(false);
+      try {
+        setSelectedUser(student);
+        setItems(lostItems);
+        setSelectedClaim(claim);
+        setIsError(false);
+        setIsLoading(false);
+      } catch {
+        setIsError(true);
+        setIsLoading(false);
+      }
     }, 500);
 
     return () => clearTimeout(timer);
@@ -92,51 +101,112 @@ function App() {
     searchInputRef.current?.focus();
   };
 
-  // Typed event handler
+  const handleSelectUser = (user: User): void => {
+    setSelectedUser(user);
+  };
+
   const handleViewItem = (item: Item): void => {
     alert(`Viewing Item: ${item.itemName}`);
   };
 
-  if (isLoading) {
-    return <p>Loading lost and found data...</p>;
-  }
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleSearchChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredItems = items.filter((item) =>
-    item.itemName.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredItems = items.filter(
+    (item) =>
+      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-pulse rounded-lg bg-white px-6 py-4 text-gray-600 shadow dark:bg-gray-800 dark:text-gray-300">
+          Loading lost and found data...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-gray-900">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-6 py-4 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          Could not load lost and found data. Please try again.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>Campus Lost & Found Tracker</h1>
+    <div className={isDarkMode ? "dark" : ""}>
+      <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Campus Lost & Found Tracker
+          </h1>
 
-      <input
-        ref={searchInputRef}
-        type="text"
-        placeholder="Search lost and found items..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-      />
+          <button
+            onClick={toggleDarkMode}
+            className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-white"
+          >
+            {isDarkMode ? "Light Mode" : "Dark Mode"}
+          </button>
+        </div>
 
-      <button onClick={focusSearch}>Focus Search</button>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search lost and found items..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          />
 
-      <p>Current Search: {searchTerm || "None"}</p>
-      <p>Previous Search: {previousSearchTerm || "None"}</p>
+          <button
+            onClick={focusSearch}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Focus Search
+          </button>
+        </div>
 
-      {selectedUser && <UserCard user={selectedUser} />}
+        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+          <p>Current Search: {searchTerm || "None"}</p>
+          <p>Previous Search: {previousSearchTerm || "None"}</p>
+        </div>
 
-      {filteredItems.map((item) => (
-        <ItemCard key={item.id} item={item} onSelect={handleViewItem} />
-      ))}
+        {selectedUser && (
+          <div className="mt-6">
+            <UserCard user={selectedUser} onSelect={handleSelectUser} />
+          </div>
+        )}
 
-      <button onClick={toggleShowClaims}>
-        {showClaims ? "Hide Claim" : "Show Claim"}
-      </button>
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item) => (
+            <ItemCard key={item.id} item={item} onSelect={handleViewItem} />
+          ))}
+        </div>
 
-      {showClaims && selectedClaim && <ClaimCard claim={selectedClaim} />}
+        <div className="mt-8">
+          <button
+            onClick={toggleShowClaims}
+            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+          >
+            {showClaims ? "Hide Claim" : "Show Claim"}
+          </button>
+
+          {showClaims && selectedClaim && (
+            <div className="mt-4">
+              <ClaimCard claim={selectedClaim} />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
