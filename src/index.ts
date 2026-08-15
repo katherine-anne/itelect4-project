@@ -5,10 +5,6 @@ import type {
   Claim,
   ApiResponse,
   StringOrNumber,
-  UserUpdate,
-  UserPreview,
-  PublicUser,
-  UserCount,
 } from "./types/index";
 
 import { ClaimStatus, UserRole } from "./types/index";
@@ -18,9 +14,6 @@ import { ClaimStatus, UserRole } from "./types/index";
 
 const projectName: string = "Campus Lost & Found Tracker";
 const currentYear: number = 2026;
-const isWebApp: boolean = true;
-const nothing: null = null;
-const notSet: undefined = undefined;
 
 // Function: typed parameters + typed return value
 function greet(name: string, year: number): string {
@@ -124,32 +117,6 @@ const itemResponse: ApiResponse<Item[]> = {
 
 console.log(userResponse.data.name);
 console.log(itemResponse.data[0]?.itemName);
-
-
-// ===== USING UTILITY TYPES =====
-const patch: UserUpdate = {
-  name: "Juan D. Cruz",
-};
-
-// Pick<T,K>
-const preview: UserPreview = {
-  id: 1,
-  name: "Juan Dela Cruz",
-  role: "student",
-};
-
-// Omit<T,K>
-const publicProfile: PublicUser = {
-  id: 1,
-  name: "Juan Dela Cruz",
-  role: "student",
-};
-
-// Record<K,T>
-const userCount: UserCount = {
-  student: 150,
-  securityAdmin: 5
-};
 
 
 // ===== ReturnType<T> =====

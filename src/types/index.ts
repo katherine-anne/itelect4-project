@@ -65,11 +65,6 @@ export type DateFormatter = (date: Date) => string;
 // Using them
 const itemId: ID = "LF-2026-001";
 
-const itemLocation: Location = {
-  building: "St. La Salle Building",
-  room: "Room 301",
-};
-
 const formatDate: DateFormatter = (date) =>
   date.toLocaleDateString();
 
@@ -96,26 +91,6 @@ printId("LF-2026-001");
 export type ItemWithOwner = Item & {
   owner: User;
   claimCount: number;
-};
-
-const lostItem: ItemWithOwner = {
-  id: 1,
-  itemName: "Black Wallet",
-  description: "Contains school ID and cards",
-  location: "Library",
-  dateReported: new Date(),
-  status: "lost",
-  ownerId: 1,
-
-  owner: {
-    id: 1,
-    name: "Juan Dela Cruz",
-    email: "juan@school.edu",
-    role: "student",
-    isActive: true,
-  },
-
-  claimCount: 2,
 };
 
 // ===== GENERIC INTERFACE =====
