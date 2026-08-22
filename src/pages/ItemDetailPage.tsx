@@ -1,8 +1,9 @@
-// src/pages/ItemDetailPage.tsx -- NEW FILE
-
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router";
+
+import type { ApiItem, Item } from "../types/index";
 import ItemCard from "../components/ItemCard";
-import { lostItems } from "../data/mockData";
+import { fetchItemById } from "../api/client";
 
 function ItemDetailPage() {
   // Reads whatever is in the :id slot of the URL.
@@ -10,16 +11,44 @@ function ItemDetailPage() {
 
   const navigate = useNavigate();
 
-  // URL parameters are strings, while Item.id is a number.
-  const item = lostItems.find(
-    (currentItem) => currentItem.id === Number(id)
-  );
+  // The id from the URL is part of the query key.
+  const { data, isPending, isError, error } = useQuery<
+    ApiItem,
+    Error,
+    Item
+  >({
+    queryKey: ["items", id],
+    queryFn: () => fetchItemById(id!),
+    enabled: id !== undefined,
 
-  // A user can manually type an invalid item ID in the URL.
-  if (item === undefined) {
+    // Convert API values into the Item type used by ItemCard.
+    select: (item) => ({
+      ...item,
+      id: Number(item.id),
+      dateReported: new Date(item.dateReported),
+    }),
+  });
+
+  if (id === undefined) {
     return (
       <div className="rounded-lg bg-red-50 p-4 text-red-700">
-        No item found with ID "{id}".
+        No item ID was provided.
+      </div>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <div className="animate-pulse p-6">
+        Loading item...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-lg bg-red-50 p-4 text-red-700">
+        {error.message}
       </div>
     );
   }
@@ -27,12 +56,12 @@ function ItemDetailPage() {
   return (
     <div>
       <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-        {item.itemName}
+        {data.itemName}
       </h2>
 
       <div className="max-w-sm">
         <ItemCard
-          item={item}
+          item={data}
           onSelect={() => undefined}
         />
       </div>

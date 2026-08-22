@@ -1,46 +1,35 @@
-// src/pages/ItemsPage.tsx -- NEW FILE
-
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 
-import type { Item } from "../types/index";
+import type { ApiItem, Item } from "../types/index";
 import ItemCard from "../components/ItemCard";
 import usePrevious from "../hooks/usePrevious";
-import { lostItems } from "../data/mockData";
+import { fetchItems } from "../api/client";
 
 function ItemsPage() {
-  // These came from the item/search section of the old App.tsx
-  const [items, setItems] = useState<Item[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  // React Query replaces the old items, loading, error, and useEffect logic.
+  const { data, isPending, isError, error } = useQuery<
+    ApiItem[],
+    Error,
+    Item[]
+  >({
+    queryKey: ["items"],
+    queryFn: fetchItems,
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
+    // Convert the JSON API values back into the Item type used by the app.
+    select: (items) =>
+      items.map((item) => ({
+        ...item,
+        id: Number(item.id),
+        dateReported: new Date(item.dateReported),
+      })),
+  });
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const previousSearch = usePrevious(searchTerm);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setItems(lostItems);
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleSearchChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Search by item name or location
-  const filteredItems = items.filter(
-    (item) =>
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="animate-pulse p-6">
         Loading lost and found items...
@@ -51,10 +40,17 @@ function ItemsPage() {
   if (isError) {
     return (
       <div className="rounded-lg bg-red-50 p-4 text-red-700">
-        Could not load lost and found items.
+        {error.message} -- is json-server running on port 3001?
       </div>
     );
   }
+
+  // Search by item name or location.
+  const filteredItems = data.filter(
+    (item) =>
+      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
@@ -62,17 +58,9 @@ function ItemsPage() {
         Items
       </h2>
 
-      <button
-        onClick={() => setIsError(true)}
-        className="mb-2 rounded bg-red-100 px-2 py-1 text-xs text-red-700"
-      >
-        Simulate Error
-      </button>
-
       <input
-        ref={searchInputRef}
         value={searchTerm}
-        onChange={handleSearchChange}
+        onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Search lost and found items..."
         className="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
       />
