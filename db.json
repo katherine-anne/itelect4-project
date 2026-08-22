@@ -1,0 +1,75 @@
+{
+  "items": [
+    {
+      "id": "1",
+      "itemName": "Black Wallet",
+      "description": "Contains school ID and cards",
+      "location": "Library",
+      "dateReported": "2026-08-21T08:00:00.000Z",
+      "status": "lost",
+      "ownerId": 1
+    },
+    {
+      "id": "2",
+      "itemName": "Pink Umbrella",
+      "description": "Automatic umbrella with a pink floral design",
+      "location": "Women's Restroom",
+      "dateReported": "2026-08-21T08:30:00.000Z",
+      "status": "lost",
+      "ownerId": 2
+    },
+    {
+      "id": "3",
+      "itemName": "Silver Water Bottle",
+      "description": "Stainless steel bottle with a blue cap",
+      "location": "Gymnasium",
+      "dateReported": "2026-08-21T09:00:00.000Z",
+      "status": "found",
+      "ownerId": 3
+    },
+    {
+      "id": "4",
+      "itemName": "Scientific Calculator",
+      "description": "Black Casio calculator with a name sticker at the back",
+      "location": "Engineering Building",
+      "dateReported": "2026-08-21T09:30:00.000Z",
+      "status": "claimed",
+      "ownerId": 4
+    }
+  ],
+  "claims": [
+    {
+      "id": "1",
+      "itemId": 1,
+      "claimantId": 2,
+      "claimDate": "2026-08-21T10:00:00.000Z",
+      "status": "approved",
+      "proof": "Student ID presented"
+    },
+    {
+      "id": "2",
+      "itemId": 3,
+      "claimantId": 1,
+      "claimDate": "2026-08-21T10:30:00.000Z",
+      "status": "rejected",
+      "proof": "No valid proof of ownership provided"
+    },
+    {
+      "id": "3",
+      "itemId": 4,
+      "claimantId": 4,
+      "claimDate": "2026-08-21T11:00:00.000Z",
+      "status": "approved",
+      "proof": "Student ID and item description verified"
+    },
+    {
+      "itemId": 2,
+      "claimantId": 1,
+      "claimDate": "2026-08-22T02:23:08.193Z",
+      "status": "approved",
+      "proof": " Student ID and item description",
+      "id": "WGmpbi102l0"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

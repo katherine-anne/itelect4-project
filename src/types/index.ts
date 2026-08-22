@@ -99,3 +99,22 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
+
+// ===== API TYPES =====
+
+// JSON has no Date, and json-server uses string ids.
+// This is the shape returned by the API for an item.
+export type ApiItem = Omit<Item, "id" | "dateReported"> & {
+  id: string;
+  dateReported: string;
+};
+
+// This is the shape returned by the API for a claim.
+export type ApiClaim = Omit<Claim, "id" | "claimDate"> & {
+  id: string;
+  claimDate: string;
+};
+
+// What we send when creating a claim.
+// The server creates the id.
+export type NewClaim = Omit<ApiClaim, "id">;

@@ -1,12 +1,10 @@
-// src/components/Layout.tsx -- NEW FILE
-
 import { NavLink, Outlet } from "react-router";
-import useToggle from "../hooks/useToggle";
+import useUiStore from "../store/uiStore";
 import useAuthStore from "../store/authStore";
 
 function Layout() {
-  // Dark mode is shared by all pages, so it belongs in Layout.
-  const [isDarkMode, toggleDarkMode] = useToggle(false);
+  const isDarkMode = useUiStore((state) => state.isDarkMode);
+  const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
 
   const userName = useAuthStore((state) => state.userName);
   const logout = useAuthStore((state) => state.logout);
@@ -14,17 +12,12 @@ function Layout() {
   // Shared navigation-link styles
   const base = "rounded px-3 py-1.5 text-sm";
 
-  const activeLink =
-    `${base} bg-blue-600 font-semibold text-white`;
+  const activeLink = `${base} bg-blue-600 font-semibold text-white`;
 
-  const idleLink =
-    `${base} text-gray-700 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700`;
+  const idleLink = `${base} text-gray-700 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700`;
 
-  const linkClass = ({
-    isActive,
-  }: {
-    isActive: boolean;
-  }): string => (isActive ? activeLink : idleLink);
+  const linkClass = ({ isActive }: { isActive: boolean }): string =>
+    isActive ? activeLink : idleLink;
 
   return (
     <div className={isDarkMode ? "dark" : ""}>
