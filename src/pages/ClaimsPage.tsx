@@ -1,26 +1,43 @@
-import { useState } from "react";
 import {
   useQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import type { ApiClaim } from "../types/index";
+import { claimSchema } from "../schemas/claimSchema";
+import type { ClaimFormValues } from "../schemas/claimSchema";
 import ClaimCard from "../components/ClaimCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { fetchClaims, createClaim } from "../api/client";
 
 function ClaimsPage() {
-  // Local form state because only this page uses these values.
-  const [itemId, setItemId] = useState<string>("");
-  const [proof, setProof] = useState<string>("");
-
   const queryClient = useQueryClient();
+
+  // useForm holds the values, runs the schema, and stores the errors.
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ClaimFormValues>({
+    resolver: zodResolver(claimSchema),
+    mode: "onBlur",
+    defaultValues: {
+      itemId: "",
+      proof: "",
+    },
+  });
 
   // READ: GET /claims
   const { data, isPending, isError, error } = useQuery<ApiClaim[]>({
-  queryKey: ["claims"],
-  queryFn: fetchClaims,
-});
+    queryKey: ["claims"],
+    queryFn: fetchClaims,
+  });
 
   // WRITE: POST /claims
   const addClaim = useMutation({
@@ -32,18 +49,19 @@ function ClaimsPage() {
         queryKey: ["claims"],
       });
 
-      setItemId("");
-      setProof("");
+      // Clears every form field at once.
+      reset();
     },
   });
 
-  const handleAdd = (): void => {
+  // handleSubmit only calls this after the schema passes.
+  const onSubmit = (values: ClaimFormValues): void => {
     addClaim.mutate({
-      itemId: Number(itemId),
+      itemId: Number(values.itemId),
       claimantId: 1,
       claimDate: new Date().toISOString(),
       status: "approved",
-      proof: proof,
+      proof: values.proof,
     });
   };
 
@@ -69,34 +87,57 @@ function ClaimsPage() {
         My Claims
       </h2>
 
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row">
-        <input
-          type="number"
-          value={itemId}
-          onChange={(e) => setItemId(e.target.value)}
-          placeholder="Item ID"
-          className="rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-        />
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mb-6 grid gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+      >
+        <div className="grid gap-1.5">
+          <Label htmlFor="itemId" className="text-foreground">
+            Item ID
+          </Label>
 
-        <input
-          value={proof}
-          onChange={(e) => setProof(e.target.value)}
-          placeholder="Proof of ownership"
-          className="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-        />
+          <Input
+            id="itemId"
+            type="number"
+            {...register("itemId")}
+            aria-invalid={errors.itemId ? true : undefined}
+            placeholder="Item ID"
+          />
 
-        <button
-          onClick={handleAdd}
-          disabled={
-            itemId === "" ||
-            proof === "" ||
-            addClaim.isPending
-          }
-          className="rounded bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-gray-400"
+          {errors.itemId && (
+            <p className="text-sm text-red-600">
+              {errors.itemId.message}
+            </p>
+          )}
+        </div>
+
+        <div className="grid gap-1.5">
+          <Label htmlFor="proof" className="text-foreground">
+            Proof of ownership
+          </Label>
+
+          <Input
+            id="proof"
+            {...register("proof")}
+            aria-invalid={errors.proof ? true : undefined}
+            placeholder="Proof of ownership"
+          />
+
+          {errors.proof && (
+            <p className="text-sm text-red-600">
+              {errors.proof.message}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          disabled={addClaim.isPending}
+          className="justify-self-start"
         >
           {addClaim.isPending ? "Saving..." : "Add Claim"}
-        </button>
-      </div>
+        </Button>
+      </form>
 
       {addClaim.isError && (
         <p className="mb-4 text-sm text-red-700">
