@@ -9,6 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ItemsPage from "./pages/ItemsPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ClaimsPage from "./pages/ClaimsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -22,6 +23,7 @@ function App() {
         <Route path="items/:id" element={<ItemDetailPage />} />
 
         <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="claims" element={<ClaimsPage />} />

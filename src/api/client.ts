@@ -1,60 +1,100 @@
+import useAuthStore from "../store/authStore";
 import type {
-  ApiItem,
   ApiClaim,
+  ApiItem,
+  AuthReply,
+  LoginCredentials,
   NewClaim,
+  RegisterCredentials,
+  User,
 } from "../types/index";
 
-// Every call to json-server lives in this file.
-export const API_URL = "http://localhost:3001";
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-// GET /items -> the whole list
-export async function fetchItems(): Promise<ApiItem[]> {
-  const res = await fetch(`${API_URL}/items`);
-
-  if (!res.ok) {
-    throw new Error("Could not load items");
-  }
-
-  return res.json();
+if (!configuredApiUrl) {
+  throw new Error("VITE_API_URL is missing. Set it in your local or Vercel environment.");
 }
 
-// GET /items/:id -> one specific item
-export async function fetchItemById(id: string): Promise<ApiItem> {
-  const res = await fetch(`${API_URL}/items/${id}`);
+export const API_URL = configuredApiUrl.replace(/\/+$/, "");
 
-  if (!res.ok) {
-    throw new Error(`Could not load item with id "${id}".`);
-  }
-
-  return res.json();
+interface RequestOptions extends RequestInit {
+  authenticated?: boolean;
 }
 
-// GET /claims -> the whole list
-export async function fetchClaims(): Promise<ApiClaim[]> {
-  const res = await fetch(`${API_URL}/claims`);
-
-  if (!res.ok) {
-    throw new Error("Could not load claims");
+function apiErrorMessage(payload: unknown): string | undefined {
+  if (typeof payload !== "object" || payload === null || !("message" in payload)) {
+    return undefined;
   }
 
-  return res.json();
+  return typeof payload.message === "string" ? payload.message : undefined;
 }
 
-// POST /claims -> the saved claim, including the id made by json-server
-export async function createClaim(
-  newClaim: NewClaim
-): Promise<ApiClaim> {
-  const res = await fetch(`${API_URL}/claims`, {
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { authenticated = false, headers: requestHeaders, ...init } = options;
+  const headers = new Headers(requestHeaders);
+
+  if (init.body !== undefined && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (authenticated) {
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      throw new Error("Please log in to continue.");
+    }
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+  let payload: unknown;
+
+  if (response.status !== 204) {
+    try {
+      payload = await response.json();
+    } catch {
+      payload = undefined;
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      apiErrorMessage(payload) ?? `Request failed with status ${response.status}`,
+    );
+  }
+
+  return payload as T;
+}
+
+export function fetchItems(): Promise<ApiItem[]> {
+  return request<ApiItem[]>("/api/items");
+}
+
+export function fetchItemById(id: string): Promise<ApiItem> {
+  return request<ApiItem>(`/api/items/${encodeURIComponent(id)}`);
+}
+
+export function fetchClaims(): Promise<ApiClaim[]> {
+  return request<ApiClaim[]>("/api/claims", { authenticated: true });
+}
+
+export function createClaim(newClaim: NewClaim): Promise<ApiClaim> {
+  return request<ApiClaim>("/api/claims", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(newClaim),
+    authenticated: true,
   });
+}
 
-  if (!res.ok) {
-    throw new Error("Could not save the claim");
-  }
+export function registerUser(credentials: RegisterCredentials): Promise<User> {
+  return request<User>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+}
 
-  return res.json();
+export function loginUser(credentials: LoginCredentials): Promise<AuthReply> {
+  return request<AuthReply>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
 }

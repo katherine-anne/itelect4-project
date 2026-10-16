@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 interface AuthState {
   token: string | null;
   userName: string | null;
-  login: (name: string) => void;
+  setSession: (token: string, userName: string) => void;
   logout: () => void;
 }
 
@@ -15,11 +15,7 @@ const useAuthStore = create<AuthState>()(
       token: null,
       userName: null,
 
-      login: (name) =>
-        set({
-          token: `demo-token-${name}`,
-          userName: name,
-        }),
+      setSession: (token, userName) => set({ token, userName }),
 
       logout: () =>
         set({
@@ -28,7 +24,8 @@ const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: "lost-and-found-auth",
+      // A fresh key prevents previously persisted demo tokens from being reused.
+      name: "itelect4-auth",
 
       // Only persist actual authentication data.
       partialize: (state) => ({

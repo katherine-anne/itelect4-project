@@ -30,7 +30,7 @@ logMessage(greet(projectName, currentYear));
 
 // ===== USING INTERFACES =====
 const student: User = {
-  id: 1,
+  id: "sample-user",
   name: "Juan Dela Cruz",
   email: "juan@example.com",
   role: "student",
@@ -38,7 +38,7 @@ const student: User = {
 };
 
 const lostItem: Item = {
-  id: 1,
+  id: "sample-item",
   itemName: "Black Wallet",
   description: "Contains school ID and cards",
   location: "Library",
@@ -48,9 +48,9 @@ const lostItem: Item = {
 };
 
 const claim: Claim = {
-  id: 1,
-  itemId: 1,
-  claimantId: 2,
+  id: "sample-claim",
+  itemId: "sample-item",
+  claimantId: "sample-user",
   claimDate: new Date(),
   status: "approved",
   proof: "Student ID presented",
@@ -90,15 +90,15 @@ function getFirst<T>(items: T[]): T | undefined {
   return items[0];
 }
 
-function getById<T extends { id: number }>(
+function getById<T extends { id: string }>(
   items: T[],
-  id: number,
+  id: string,
 ): T | undefined {
   return items.find((item) => item.id === id);
 }
 
 const firstUser = getFirst<User>([student]);
-const foundItem = getById<Item>([lostItem], 1);
+const foundItem = getById<Item>([lostItem], "sample-item");
 
 console.log(firstUser?.name);
 console.log(foundItem?.itemName);
@@ -120,11 +120,11 @@ console.log(itemResponse.data[0]?.itemName);
 
 
 // ===== ReturnType<T> =====
-function createClaim(itemId: number) {
+function createClaim(itemId: string) {
   return {
-    id: 1,
+    id: "sample-claim",
     itemId,
-    claimantId: 2,
+    claimantId: "sample-user",
     claimDate: new Date(),
     status: "approved" as const,
     proof: "Student ID presented",
@@ -133,7 +133,7 @@ function createClaim(itemId: number) {
 
 type NewClaim = ReturnType<typeof createClaim>;
 
-const newClaim: NewClaim = createClaim(1);
+const newClaim: NewClaim = createClaim("sample-item");
 
 console.log(newClaim);
 

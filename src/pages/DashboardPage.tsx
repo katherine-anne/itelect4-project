@@ -8,7 +8,7 @@ import { student } from "../data/mockData";
 
 function DashboardPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showDetails, toggleDetails] = useToggle(false);
+  const [showDetails, toggleDetails] = useToggle(false);    // custom hook to toggle the visibility of the user details
 
   return (
     <div>
@@ -30,7 +30,7 @@ function DashboardPage() {
         {showDetails ? "Hide" : "Show"} Details
       </button>
 
-      {showDetails && selectedUser !== null && (
+      {showDetails && selectedUser !== null && (      //showDetails is true and a user has been selected.
         <p className="mt-2 text-gray-700 dark:text-gray-300">
           Selected: {selectedUser.name} ({selectedUser.role})
         </p>

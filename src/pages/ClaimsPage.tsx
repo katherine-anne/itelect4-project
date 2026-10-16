@@ -1,24 +1,20 @@
 import {
-  useQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import type { ApiClaim } from "../types/index";
-import { claimSchema } from "../schemas/claimSchema";
-import type { ClaimFormValues } from "../schemas/claimSchema";
+import type { ApiClaim, ApiItem } from "../types/index";
+import { claimSchema, type ClaimFormValues } from "../schemas/claimSchema";
 import ClaimCard from "../components/ClaimCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { fetchClaims, createClaim } from "../api/client";
+import { createClaim, fetchClaims, fetchItems } from "../api/client";
 
 function ClaimsPage() {
   const queryClient = useQueryClient();
-
-  // useForm holds the values, runs the schema, and stores the errors.
   const {
     register,
     handleSubmit,
@@ -27,56 +23,43 @@ function ClaimsPage() {
   } = useForm<ClaimFormValues>({
     resolver: zodResolver(claimSchema),
     mode: "onBlur",
-    defaultValues: {
-      itemId: "",
-      proof: "",
-    },
+    defaultValues: { itemId: "", proof: "" },
   });
 
-  // READ: GET /claims
-  const { data, isPending, isError, error } = useQuery<ApiClaim[]>({
+  const items = useQuery<ApiItem[]>({
+    queryKey: ["items"],
+    queryFn: fetchItems,
+  });
+
+  const claims = useQuery<ApiClaim[]>({
     queryKey: ["claims"],
     queryFn: fetchClaims,
   });
 
-  // WRITE: POST /claims
   const addClaim = useMutation({
     mutationFn: createClaim,
-
     onSuccess: () => {
-      // The claims list is now outdated, so React Query refetches it.
-      queryClient.invalidateQueries({
-        queryKey: ["claims"],
-      });
-
-      // Clears every form field at once.
+      queryClient.invalidateQueries({ queryKey: ["claims"] });
       reset();
     },
   });
 
-  // handleSubmit only calls this after the schema passes.
-  const onSubmit = (values: ClaimFormValues): void => {
-    addClaim.mutate({
-      itemId: Number(values.itemId),
-      claimantId: 1,
-      claimDate: new Date().toISOString(),
-      status: "approved",
-      proof: values.proof,
-    });
-  };
+  if (items.isPending || claims.isPending) {
+    return <div className="animate-pulse p-6">Loading claims and items...</div>;
+  }
 
-  if (isPending) {
+  if (items.isError) {
     return (
-      <div className="animate-pulse p-6">
-        Loading claims...
+      <div role="alert" className="rounded-lg bg-red-50 p-4 text-red-700">
+        {items.error.message}
       </div>
     );
   }
 
-  if (isError) {
+  if (claims.isError) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-red-700">
-        {error.message} -- is json-server running on port 3001?
+      <div role="alert" className="rounded-lg bg-red-50 p-4 text-red-700">
+        {claims.error.message}
       </div>
     );
   }
@@ -88,26 +71,31 @@ function ClaimsPage() {
       </h2>
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((values) => addClaim.mutate(values))}
         className="mb-6 grid gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700"
       >
         <div className="grid gap-1.5">
           <Label htmlFor="itemId" className="text-foreground">
-            Item ID
+            Item
           </Label>
-
-          <Input
+          <select
             id="itemId"
-            type="number"
             {...register("itemId")}
             aria-invalid={errors.itemId ? true : undefined}
-            placeholder="Item ID"
-          />
-
+            className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="">Select an item</option>
+            {items.data.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.itemName} — {item.location}
+              </option>
+            ))}
+          </select>
           {errors.itemId && (
-            <p className="text-sm text-red-600">
-              {errors.itemId.message}
-            </p>
+            <p className="text-sm text-red-600">{errors.itemId.message}</p>
+          )}
+          {items.data.length === 0 && (
+            <p className="text-sm text-gray-500">No items are available yet.</p>
           )}
         </div>
 
@@ -115,24 +103,20 @@ function ClaimsPage() {
           <Label htmlFor="proof" className="text-foreground">
             Proof of ownership
           </Label>
-
           <Input
             id="proof"
             {...register("proof")}
             aria-invalid={errors.proof ? true : undefined}
-            placeholder="Proof of ownership"
+            placeholder="Describe proof of ownership"
           />
-
           {errors.proof && (
-            <p className="text-sm text-red-600">
-              {errors.proof.message}
-            </p>
+            <p className="text-sm text-red-600">{errors.proof.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          disabled={addClaim.isPending}
+          disabled={addClaim.isPending || items.data.length === 0}
           className="justify-self-start"
         >
           {addClaim.isPending ? "Saving..." : "Add Claim"}
@@ -140,13 +124,13 @@ function ClaimsPage() {
       </form>
 
       {addClaim.isError && (
-        <p className="mb-4 text-sm text-red-700">
+        <p role="alert" className="mb-4 text-sm text-red-700">
           {addClaim.error.message}
         </p>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {data.map((claim) => (
+        {claims.data.map((claim) => (
           <ClaimCard key={claim.id} claim={claim}>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Proof: {claim.proof}
