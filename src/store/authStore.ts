@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { User } from "../types/index";
 
 // Defines the data and functions available in the authentication store.
 interface AuthState {
   token: string | null;
   userName: string | null;
-  login: (name: string) => void;
+  userRole: User["role"] | null;
+  setSession: (token: string, user: Pick<User, "name" | "role">) => void;
   logout: () => void;
 }
 
@@ -14,26 +16,27 @@ const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       userName: null,
+      userRole: null,
 
-      login: (name) =>
-        set({
-          token: `demo-token-${name}`,
-          userName: name,
-        }),
+      setSession: (token, user) =>
+        set({ token, userName: user.name, userRole: user.role }),
 
       logout: () =>
         set({
           token: null,
           userName: null,
+          userRole: null,
         }),
     }),
     {
-      name: "lost-and-found-auth",
+      // A fresh key prevents previously persisted demo tokens from being reused.
+      name: "itelect4-auth",
 
       // Only persist actual authentication data.
       partialize: (state) => ({
         token: state.token,
         userName: state.userName,
+        userRole: state.userRole,
       }),
     }
   )

@@ -1,7 +1,7 @@
 import type { User } from "../types/index";
 
 export const student: User = {
-  id: 1,
+  id: "sample-user",
   name: "Juan Dela Cruz",
   email: "juan@example.com",
   role: "student",

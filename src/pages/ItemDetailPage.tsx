@@ -6,7 +6,7 @@ import ItemCard from "../components/ItemCard";
 import { fetchItemById } from "../api/client";
 
 function ItemDetailPage() {
-  // Reads whatever is in the :id slot of the URL.
+  // Reads whatever is in the :id slot of the URL. For ex: /items/5 would give us id = "5".
   const { id } = useParams<{ id: string }>();
 
   const navigate = useNavigate();
@@ -18,13 +18,13 @@ function ItemDetailPage() {
     Item
   >({
     queryKey: ["items", id],
-    queryFn: () => fetchItemById(id!),
+    queryFn: () => fetchItemById(id!),    //uses id to request the real item
     enabled: id !== undefined,
 
     // Convert API values into the Item type used by ItemCard.
     select: (item) => ({
       ...item,
-      id: Number(item.id),
+      id: item.id,
       dateReported: new Date(item.dateReported),
     }),
   });

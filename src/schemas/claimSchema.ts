@@ -3,13 +3,7 @@ import { z } from "zod";
 export const claimSchema = z.object({
   itemId: z
     .string()
-    .min(1, "Enter an item ID.")
-    .refine(
-      (value) =>
-        Number.isInteger(Number(value)) &&
-        Number(value) > 0,
-      "Item ID must be a positive whole number."
-    ),
+    .min(1, "Choose an item."),
 
   proof: z
     .string()
