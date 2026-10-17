@@ -22,9 +22,12 @@
     itemId: string;
     claimantId: string;
     claimDate: Date;
-    status: "approved" | "rejected";
+    status: ClaimStatusValue;
     proof: string;
   }
+
+  export type ClaimStatusValue = "pending" | "approved" | "rejected";
+  export type ClaimDecision = Exclude<ClaimStatusValue, "pending">;
 
   export type UserUpdate = Partial<User>;
 
@@ -40,6 +43,7 @@
   // ===== ENUMS =====
   // Regular enum
   export enum ClaimStatus {
+    Pending,
     Approved,
     Rejected,
   }

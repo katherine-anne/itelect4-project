@@ -2,6 +2,7 @@ import useAuthStore from "../store/authStore";
 import type {
   ApiClaim,
   ApiItem,
+  ClaimDecision,
   AuthReply,
   LoginCredentials,
   NewClaim,
@@ -81,6 +82,17 @@ export function createClaim(newClaim: NewClaim): Promise<ApiClaim> {
   return request<ApiClaim>("/api/claims", {
     method: "POST",
     body: JSON.stringify(newClaim),
+    authenticated: true,
+  });
+}
+
+export function updateClaimStatus(
+  id: string,
+  status: ClaimDecision,
+): Promise<ApiClaim> {
+  return request<ApiClaim>(`/api/claims/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
     authenticated: true,
   });
 }

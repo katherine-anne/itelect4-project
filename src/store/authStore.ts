@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { User } from "../types/index";
 
 // Defines the data and functions available in the authentication store.
 interface AuthState {
   token: string | null;
   userName: string | null;
-  setSession: (token: string, userName: string) => void;
+  userRole: User["role"] | null;
+  setSession: (token: string, user: Pick<User, "name" | "role">) => void;
   logout: () => void;
 }
 
@@ -14,13 +16,16 @@ const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       userName: null,
+      userRole: null,
 
-      setSession: (token, userName) => set({ token, userName }),
+      setSession: (token, user) =>
+        set({ token, userName: user.name, userRole: user.role }),
 
       logout: () =>
         set({
           token: null,
           userName: null,
+          userRole: null,
         }),
     }),
     {
@@ -31,6 +36,7 @@ const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         token: state.token,
         userName: state.userName,
+        userRole: state.userRole,
       }),
     }
   )

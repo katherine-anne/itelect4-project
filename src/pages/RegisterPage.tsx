@@ -31,7 +31,7 @@ function RegisterPage() {
       return loginUser({ email, password });
     },
     onSuccess: (reply) => {
-      setSession(reply.token, reply.user.name);
+      setSession(reply.token, reply.user);
       navigate("/claims");
     },
   });
