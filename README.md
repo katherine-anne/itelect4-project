@@ -1,4 +1,14 @@
-# React + TypeScript + Vite
+# Campus Lost & Found Tracker
+
+## Live deployments
+
+- Frontend: https://itelect4-project-jade.vercel.app
+- Backend API: https://itelect4-backend-kappa.vercel.app
+- Backend health check: https://itelect4-backend-kappa.vercel.app/api/health
+
+## Frontend
+
+Built with React, TypeScript, and Vite.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
