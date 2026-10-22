@@ -39,6 +39,10 @@ function Layout() {
             Claims
           </NavLink>
 
+          <NavLink to="/review" className={linkClass}>
+            AI Review
+          </NavLink>
+
           {userName === null ? (
             <>
               <NavLink to="/login" className={linkClass}>
