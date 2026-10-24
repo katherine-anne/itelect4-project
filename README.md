@@ -1,5 +1,7 @@
 # Campus Lost & Found Tracker
 
+[![CI](https://github.com/katherine-anne/itelect4-project/actions/workflows/ci.yml/badge.svg)](https://github.com/katherine-anne/itelect4-project/actions/workflows/ci.yml)
+
 ## Live deployments
 
 - Frontend: https://itelect4-project-jade.vercel.app

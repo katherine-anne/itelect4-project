@@ -55,4 +55,6 @@ function Button({
   )
 }
 
+// The shared variant helper intentionally ships beside the Button component.
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }
