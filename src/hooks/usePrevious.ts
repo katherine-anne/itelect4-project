@@ -6,6 +6,8 @@ function usePrevious<T>(value: T): T | undefined {    //remember the previous va
   useEffect(() => {
     ref.current = value;
   }, [value]);
+  // This hook intentionally returns the value captured by the prior effect.
+  // eslint-disable-next-line react-hooks/refs
   return ref.current;
 }
 export default usePrevious;
