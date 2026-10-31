@@ -2,7 +2,7 @@ import useAuthStore from "../store/authStore";
 import type {
   ApiClaim,
   ApiItem,
-  AiReview,
+  ClaimProofReview,
   ClaimDecision,
   AuthReply,
   LoginCredentials,
@@ -112,10 +112,10 @@ export function loginUser(credentials: LoginCredentials): Promise<AuthReply> {
   });
 }
 
-export function askAi(prompt: string): Promise<AiReview> {
-  return request<AiReview>("/api/ai", {
+export function reviewClaimProof(proof: string): Promise<ClaimProofReview> {
+  return request<ClaimProofReview>("/api/ai", {
     method: "POST",
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ proof }),
     authenticated: true,
   });
 }
