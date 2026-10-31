@@ -131,9 +131,8 @@
     user: User;
   }
 
-  export interface AiReview {
+  export interface ClaimProofReview {
     summary: string;
-    strengths: string[];
-    improvements: string[];
-    readiness: "ready" | "almost" | "not-yet";
+    helpfulDetails: string[];
+    suggestions: string[];
   }
