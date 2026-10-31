@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   useMutation,
   useQuery,
@@ -10,12 +9,12 @@ import type { ApiClaim, ApiItem, ClaimDecision } from "../types/index";
 import { claimSchema, type ClaimFormValues } from "../schemas/claimSchema";
 import ClaimCard from "../components/ClaimCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   createClaim,
   fetchClaims,
   fetchItems,
-  reviewClaimProof,
   updateClaimStatus,
 } from "../api/client";
 import useAuthStore from "../store/authStore";
@@ -28,19 +27,12 @@ function ClaimsPage() {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm<ClaimFormValues>({
     resolver: zodResolver(claimSchema),
     mode: "onBlur",
     defaultValues: { itemId: "", proof: "" },
   });
-  const [reviewedProof, setReviewedProof] = useState<string | null>(null);
-  const proofText = watch("proof") ?? "";
-  const proofForReview = proofText.trim();
-  const canReviewProof =
-    proofForReview.length >= 20 && proofForReview.length <= 2000;
-
   const items = useQuery<ApiItem[]>({
     queryKey: ["items"],
     queryFn: fetchItems,
@@ -51,15 +43,11 @@ function ClaimsPage() {
     queryFn: fetchClaims,
   });
 
-  const proofReview = useMutation({ mutationFn: reviewClaimProof });
-
   const addClaim = useMutation({
     mutationFn: createClaim,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["claims"] });
       reset();
-      proofReview.reset();
-      setReviewedProof(null);
     },
   });
 
@@ -68,13 +56,6 @@ function ClaimsPage() {
       updateClaimStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["claims"] }),
   });
-
-  const requestProofReview = (): void => {
-    if (!canReviewProof) return;
-    proofReview.reset();
-    setReviewedProof(proofForReview);
-    proofReview.mutate(proofForReview);
-  };
 
   if (items.isPending || claims.isPending) {
     return <div className="animate-pulse p-6">Loading claims and items...</div>;
@@ -184,65 +165,14 @@ function ClaimsPage() {
             <Label htmlFor="proof" className="text-foreground">
               Proof of ownership
             </Label>
-            <textarea
+            <Input
               id="proof"
-              rows={4}
               {...register("proof")}
               aria-invalid={errors.proof ? true : undefined}
-              placeholder="Explain what makes you believe this item is yours. Include only details that are true."
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              placeholder="Describe proof of ownership"
             />
             {errors.proof && (
               <p className="text-sm text-red-600">{errors.proof.message}</p>
-            )}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              AI feedback needs 20–2,000 characters. It can suggest clearer
-              details, but it cannot verify ownership or decide your claim.
-              {" "}{proofForReview.length}/2000
-            </p>
-            <Button
-              type="button"
-              disabled={!canReviewProof || proofReview.isPending}
-              onClick={requestProofReview}
-              className="justify-self-start"
-            >
-              {proofReview.isPending ? "Reviewing..." : "Review my explanation with AI"}
-            </Button>
-            {proofReview.isError && reviewedProof === proofForReview && (
-              <p role="alert" className="text-sm text-red-700">
-                {proofReview.error.message}
-              </p>
-            )}
-            {proofReview.data && reviewedProof === proofForReview && (
-              <section
-                aria-live="polite"
-                className="grid gap-2 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-gray-800 dark:border-blue-900 dark:bg-blue-950 dark:text-gray-100"
-              >
-                <h3 className="font-semibold">AI feedback on your explanation</h3>
-                <p>{proofReview.data.summary}</p>
-                {proofReview.data.helpfulDetails.length > 0 && (
-                  <div>
-                    <h4 className="font-medium">Helpful details you included</h4>
-                    <ul className="list-disc pl-5">
-                      {proofReview.data.helpfulDetails.map((detail, index) => (
-                        <li key={index + "-" + detail}>{detail}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {proofReview.data.suggestions.length > 0 && (
-                  <div>
-                    <h4 className="font-medium">
-                      Details you could add, if true
-                    </h4>
-                    <ul className="list-disc pl-5">
-                      {proofReview.data.suggestions.map((suggestion, index) => (
-                        <li key={index + "-" + suggestion}>{suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </section>
             )}
           </div>
 
